@@ -4,6 +4,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const mongoose = require('mongoose');
 const usersRouter = require('./routes/users');
+const cors = require('cors');
 
 // database config
 mongoose.set('strictQuery', false);
@@ -14,6 +15,7 @@ db.once('open', () => console.log('Connected to database'));
 
 // middlewares config
 app.use(express.json());
+app.use(cors());
 
 // routes config
 app.get('/', (req, res) => {
