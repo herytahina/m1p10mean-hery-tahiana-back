@@ -4,6 +4,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const mongoose = require('mongoose');
 const usersRouter = require('./routes/users');
+const carsRouter = require('./routes/cars');
 const cors = require('cors');
 
 // database config
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/users', usersRouter);
+app.use('/cars', carsRouter);
 
 // app
 app.listen(

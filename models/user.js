@@ -14,7 +14,7 @@ const userModel = new mongoose.Schema({
             model: String,
         }],
         required: false,
-        default: undefined
+        default: []
     },
 });
 
