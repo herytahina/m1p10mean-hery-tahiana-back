@@ -1,4 +1,5 @@
 const Car = require('../models/car');
+const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
 const getCars = async (req, res) => {
@@ -9,8 +10,13 @@ const getCars = async (req, res) => {
 }
 
 const getCarsDb = async (where = undefined) => {
-    const cars = await Car.find(where);
-    return cars;
+    if(where.user) {
+        const user = await User.findOne({_id: where.user});
+        return user.cars;
+    } else {
+        const cars = await Car.find(where);
+        return cars;
+    }
 }
 
 const depositCar = async (req, res) => {
