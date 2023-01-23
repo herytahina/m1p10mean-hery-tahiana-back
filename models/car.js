@@ -6,7 +6,7 @@ const carModel = new mongoose.Schema({
     model: String,
     depositDate: {
         type: Date,
-        default: null
+        default: new Date()
     },
     recoveryDate: {
         type: Date,
