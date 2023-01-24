@@ -2,6 +2,50 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
+const createExitRequest = async (req, res) => {
+    const no = req.params.immatriculation;
+    await createExitRequestDb(no);
+    res.status(204).json({state: 'Success'});
+}
+
+const createExitRequestDb = async (immatriculation) => {
+    const oldCar = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false});
+    oldCar.exitTicket = true;
+    await Car.findOneAndUpdate({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false}, oldCar);
+}
+
+const getRepairsHistory = async (req, res) => {
+    const no = req.params.immatriculation;
+    const repairs = await getRepairsHistoryDb(no);
+    res.json(repairs);
+}
+
+// mbola tokony not null fa tsy votery
+const getRepairsHistoryDb = async (immatriculation) => {
+    const res = [];
+    const cars = await Car.find({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: true});
+    cars.forEach((car) => {
+        car.repairs.forEach((repair) => {
+            res.push(repair);
+        })
+    });
+    return res;
+}
+
+const getCarRepairs = async (req, res) => {
+    const no = req.params.immatriculation;
+    const repairs = await getCarRepairsDb(no);
+    if(!repairs)
+        return res.status(400).json({message: "Cette voiture n'exite pas ou n'est pas au garage"})
+    res.json(repairs);
+}
+
+// mbola tokony not null
+const getCarRepairsDb = async (immatriculation) => {
+    const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false});
+    return car?.repairs;
+}
+
 const getCars = async (req, res) => {
     if(req.query.immatriculation)
         req.query.immatriculation = req.query.immatriculation.toUpperCase().replaceAll(' ', '');
@@ -47,5 +91,8 @@ const addCarDb = async (car) => {
 
 module.exports = {
     getCars,
-    depositCar 
+    depositCar,
+    getCarRepairs,
+    getRepairsHistory,
+    createExitRequest
 };
