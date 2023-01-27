@@ -42,8 +42,8 @@ const getCarRepairs = async (req, res) => {
 
 // mbola tokony not null
 const getCarRepairsDb = async (immatriculation) => {
-    const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false});
-    return car?.repairs;
+    const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false}).select("immatriculation brand model repairs");
+    return car;
 }
 
 const getCars = async (req, res) => {
