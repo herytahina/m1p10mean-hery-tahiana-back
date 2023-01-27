@@ -54,12 +54,47 @@ const getCars = async (req, res) => {
 }
 
 const getCarsDb = async (where = undefined) => {
-    if(where.user) {
-        const user = await User.findOne({_id: where.user});
-        return user.cars;
+    if(where.search) {
+        const userString = where.user;
+        delete where.user;
+        const cars = await User.findOne({_id: userString}).select('cars -_id');
+        const carList = cars?.cars.slice() || [];
+        const res = carList.filter((car) => {
+            const carCopy = Object.assign({}, car._doc);
+            delete carCopy._id;
+            let match = [];
+            const data = Object.entries(carCopy);
+            data.forEach(d => {
+                if(m = where.search.match(new RegExp(d[1], 'gi')) || (m = d[1].match(new RegExp(where.search, 'gi')))) {
+                    if(m instanceof Array)
+                        match = match.concat(m);
+                    else
+                        match.push(m);
+                }
+            });
+            return match.length > 0;
+        });
+        return res;
     } else {
-        const cars = await Car.find(where);
-        return cars;
+        if(where.user) {
+            const userString = where.user;
+            delete where.user;
+            const data = Object.entries(where);
+            const user = await User.findOne({_id: userString});
+            const res = user.cars.filter((car) => {
+                const match = [];
+                data.forEach(d => {
+                    if(m = car[d[0]].match(new RegExp(d[1], 'gi')))
+                        match.push(m);
+                });
+                return match.length > 0;
+            });
+            if(data.length === 0) return user.cars;
+            return res;
+        } else {
+            const cars = await Car.find(where);
+            return cars;
+        }
     }
 }
 
