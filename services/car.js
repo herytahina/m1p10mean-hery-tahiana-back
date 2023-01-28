@@ -2,10 +2,28 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
+const isParkedDb = async (immatriculation) => {
+    const car = await Car.findOne({
+        immatriculation: immatriculation.toUpperCase().trim(), 
+        recoveryDate: null,
+    });
+    if(!car) {
+        return {
+            parked: false,
+            requested: false
+        }
+    } else {
+        return {
+            parked: true,
+            requested: car.exitTicket
+        }
+    }
+}
+
 const createExitRequest = async (req, res) => {
     const no = req.params.immatriculation;
     await createExitRequestDb(no);
-    res.status(204).json({state: 'Success'});
+    res.status(204).json({status: 'Success'});
 }
 
 const createExitRequestDb = async (immatriculation) => {
@@ -48,7 +66,7 @@ const getCarRepairs = async (req, res) => {
 }
 
 const getCarRepairsDb = async (immatriculation) => {
-    const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false}).select("immatriculation brand model repairs");
+    const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), recoveryDate: null}).select("immatriculation brand model repairs");
     return car;
 }
 
@@ -65,7 +83,7 @@ const getCarsDb = async (where = undefined) => {
         delete where.user;
         const cars = await User.findOne({_id: userString}).select('cars -_id');
         const carList = cars?.cars.slice() || [];
-        const res = carList.filter((car) => {
+        let res = carList.filter((car) => {
             const carCopy = Object.assign({}, car._doc);
             delete carCopy._id;
             let match = [];
@@ -80,14 +98,28 @@ const getCarsDb = async (where = undefined) => {
             });
             return match.length > 0;
         });
-        return res;
+        res = res.map(async (car) => {
+            const status = await isParkedDb(car.immatriculation);
+            return {
+                _id: car._id,
+                immatriculation: car.immatriculation,
+                brand: car.brand,
+                model: car.model,
+                status
+            }
+        })
+        return Promise.all(res).then((data) => {
+            return data
+        }).catch(() => {
+            return []
+        });
     } else {
         if(where.user) {
             const userString = where.user;
             delete where.user;
             const data = Object.entries(where);
             const user = await User.findOne({_id: userString});
-            const res = user.cars.filter((car) => {
+            let res = user.cars.filter((car) => {
                 const match = [];
                 data.forEach(d => {
                     if(m = car[d[0]].match(new RegExp(d[1], 'gi')))
@@ -95,8 +127,36 @@ const getCarsDb = async (where = undefined) => {
                 });
                 return match.length > 0;
             });
-            if(data.length === 0) return user.cars;
-            return res;
+            if(data.length === 0) {
+                res = user.cars.map(async (car) => {
+                    return {
+                        immatriculation: car.immatriculation,
+                        brand: car.brand,
+                        model: car.model,
+                        _id: car._id,
+                        status: await isParkedDb(car.immatriculation)
+                    }
+                })
+                return Promise.all(res).then((data) => {
+                    return data
+                }).catch(() => {
+                    return []
+                });
+            }
+            res = res.map(async (car) => {
+                return {
+                    immatriculation: car.immatriculation,
+                    brand: car.brand,
+                    model: car.model,
+                    _id: car._id,
+                    status: await isParkedDb(car.immatriculation)
+                }
+            })
+            return Promise.all(res).then((data) => {
+                return data
+            }).catch(() => {
+                return []
+            });
         } else {
             const cars = await Car.find(where);
             return cars;
