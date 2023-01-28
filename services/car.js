@@ -20,13 +20,20 @@ const getRepairsHistory = async (req, res) => {
     res.json(repairs);
 }
 
-// mbola tokony not null fa tsy votery
 const getRepairsHistoryDb = async (immatriculation) => {
-    const res = [];
-    const cars = await Car.find({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: true});
-    cars.forEach((car) => {
+    const res = {};
+    const cars = await Car.find({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: true, recoveryDate: {$ne: null}});
+    cars.forEach((car, i) => {
+        if(i===0) {
+            res.immatriculation = car.immatriculation;
+            res.model = car.model;
+            res.brand = car.brand;
+            res.repairs = [];
+        }
         car.repairs.forEach((repair) => {
-            res.push(repair);
+            const r = Object.assign({}, repair._doc);
+            r.date = car.recoveryDate;
+            res.repairs.push(r);
         })
     });
     return res;
@@ -40,7 +47,6 @@ const getCarRepairs = async (req, res) => {
     res.json(repairs);
 }
 
-// mbola tokony not null
 const getCarRepairsDb = async (immatriculation) => {
     const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().trim(), exitTicket: false}).select("immatriculation brand model repairs");
     return car;
