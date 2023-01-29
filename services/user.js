@@ -1,6 +1,12 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
+const deleteUser = async(req, res) => {
+    await User.deleteOne({_id: req.body.id});
+    // console.log(req.body.id);
+    res.status(204).json({state: 'success'});
+}
+
 const checkLogin = async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -18,6 +24,31 @@ const checkLoginDb = async (email, password) => {
             return user;
     }
     return false;
+}
+
+const getAdministrator = async (req, res) => {
+    const admin = await User.find({type: 2});
+    res.json(admin);
+}
+
+const createAdministrator = async (req, res) => {
+    try {
+        const oldUser = await User.findOne({ email: req.body.email });
+        if(oldUser !== null)
+            return res.status(400).json({ message: 'Email already used' });
+        const user = new User({
+            lastName: req.body.lastName,
+            firstName: req.body.firstName,
+            email: req.body.email,
+            contact: req.body.contact,
+            password: await bcrypt.hash(req.body.password, 10),
+            type: 2
+        });
+        const newUser = await user.save();
+        res.status(201).json(newUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 }
 
 const createClient = async (req, res) => {
@@ -81,4 +112,7 @@ module.exports = {
     addClientCarDb,
     hasCarDb,
     checkLogin,
+    createAdministrator,
+    getAdministrator,
+    deleteUser,
 };

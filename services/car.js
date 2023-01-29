@@ -95,6 +95,7 @@ const getCarsDb = async (where = undefined) => {
                 });
                 return match.length > 0;
             });
+            console.log('fory');
             if(data.length === 0) return user.cars;
             return res;
         } else {
