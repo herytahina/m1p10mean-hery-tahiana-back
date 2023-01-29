@@ -1,6 +1,25 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
+const checkLogin = async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const isCorrect = await checkLoginDb(email, password);
+    if(!isCorrect)
+        return res.status(400).json({message: "Email ou mot de passe incorrect."})
+    res.json(isCorrect);
+}
+
+const checkLoginDb = async (email, password) => {
+    const user = await User.findOne({email: email});
+    if(user) {
+        const res = await bcrypt.compare(password, user.password);
+        if(res)
+            return user;
+    }
+    return false;
+}
+
 const createClient = async (req, res) => {
     try {
         const oldUser = await User.findOne({ email: req.body.email });
@@ -61,4 +80,5 @@ module.exports = {
     createClient,
     addClientCarDb,
     hasCarDb,
+    checkLogin,
 };
