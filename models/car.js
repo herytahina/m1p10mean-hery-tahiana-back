@@ -26,15 +26,15 @@ const carModel = new mongoose.Schema({
         required: false,
         default: []
     },
-    mechanics : {
-        type: [{
+    mechanic : {
+        type: {
             lastName: String,
             fistName: String,
             email: String,
             contact: String
-        }],
+        },
         required: false,
-        default: []
+        default: null
     },
     payments : {
         type: [{

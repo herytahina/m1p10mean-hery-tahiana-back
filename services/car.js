@@ -2,6 +2,20 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
+const getNonReceivedCars = async (req, res) => {
+    try {
+        const cars = await getNonReceivedCarsDb();
+        res.json(cars);
+    } catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+const getNonReceivedCarsDb = async () => {
+    const cars = await Car.find({mechanic: null});
+    return cars
+}
+
 const isParkedDb = async (immatriculation) => {
     const car = await Car.findOne({
         immatriculation: immatriculation.toUpperCase().trim(), 
@@ -195,5 +209,6 @@ module.exports = {
     depositCar,
     getCarRepairs,
     getRepairsHistory,
-    createExitRequest
+    createExitRequest,
+    getNonReceivedCars
 };

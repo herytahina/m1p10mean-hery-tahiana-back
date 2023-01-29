@@ -1,5 +1,43 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const Car = require('../models/car');
+
+const carReception = async (req, res) => {
+    try {
+        const car = await carReceptionDb(req.query.mechanic, req.params.immatriculation);
+        if(car) 
+            res.status(204).json(car);
+        else
+            res.status(500).json({message: 'Internal server error'});
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+}
+
+const carReceptionDb = async (email, immatriculation) => {
+    const mechanic = await User.findOne({email});
+    if(mechanic) {
+        if(mechanic.type === 2) {
+            const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().replaceAll(' ', '')});
+            if(car) {
+                if(car.mechanic)
+                    throw new Error("Cette voiture est déjà assignée");
+                else {
+                    car.mechanic = {
+                        lastName: mechanic.lastName,
+                        fistName: mechanic.firstName,
+                        email: mechanic.email,
+                        contact: mechanic.contact
+                    }
+                    return await Car.findOneAndUpdate({_id: car._id}, car, {new: true});
+                }
+            } else
+                throw new Error("Cette voiture n'existe pas");
+        } else
+            throw new Error("Vous n'avez pas l'autorisation pour cette action.");
+    } else
+        throw new Error("Cet utilisateur n'existe pas");
+}
 
 const createClient = async (req, res) => {
     try {
@@ -61,4 +99,5 @@ module.exports = {
     createClient,
     addClientCarDb,
     hasCarDb,
+    carReception,
 };
