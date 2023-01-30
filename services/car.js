@@ -2,18 +2,71 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
-const getNonReceivedCars = async (req, res) => {
+const updateRepairProgress = async (req, res) => {
     try {
-        const cars = await getNonReceivedCarsDb();
-        res.json(cars);
+        const car = await updateRepairProgressDb(req.params.immatriculation, req.body.name, req.body.progression);
+        res.status(204).json(car);
     } catch(error) {
         res.status(500).json({message: error.message});
     }
 }
 
-const getNonReceivedCarsDb = async () => {
-    const cars = await Car.find({mechanic: null});
-    return cars
+const updateRepairProgressDb = async (id, repair, progress) => {
+    const car = await Car.findById(id);
+    if(car) {
+        car.repairs.every(r => {
+            if(r.name === repair) {
+                r.progression = progress;
+                return false;
+            }
+            return true;
+        });
+        const newCar = await Car.findByIdAndUpdate(id, car, {new: true});
+        return newCar;
+    } else
+        throw new Error(`Cette voiture n'existe pas`);
+}
+
+const listReceivedCars = async (req, res) => {
+    try {
+        const cars = await listReceivedCarsDb(req.query.mechanic);
+        res.status(200).json(cars);
+    } catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+const listReceivedCarsDb = async (mechanic) => {
+    const cars = await getCarsDb({"mechanic.email": mechanic, recoveryDate: null, exitTicket: false});
+    return cars;
+}
+
+const addRepairs = async (req, res) => {
+    try {
+        const cars = await addRepairsDb(req.params.immatriculation, req.body.repairs);
+        res.status(204).json(cars);
+    } catch(error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+const addRepairsDb = async (immatriculation, repairs) => {
+    const car = await Car.findOne({immatriculation, recoveryDate: null});
+    if(car) {
+        car.repairs = car.repairs.concat(repairs);
+        const newCar = await Car.findOneAndUpdate({immatriculation, recoveryDate: null}, car, {new: true});
+        return newCar;
+    } else 
+        throw new Error("Cette voiture n'est pas au garage");
+}
+
+const getNonReceivedCars = async (req, res) => {
+    try {
+        const cars = await getCarsDb({mechanic: null});
+        res.json(cars);
+    } catch(error) {
+        res.status(500).json({message: error.message});
+    }
 }
 
 const isParkedDb = async (immatriculation) => {
@@ -210,5 +263,8 @@ module.exports = {
     getCarRepairs,
     getRepairsHistory,
     createExitRequest,
-    getNonReceivedCars
+    getNonReceivedCars,
+    addRepairs,
+    listReceivedCars,
+    updateRepairProgress,
 };
