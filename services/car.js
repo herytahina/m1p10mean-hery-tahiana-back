@@ -1,6 +1,37 @@
+const { findById } = require('../models/car');
 const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
+
+const exitTicketValidation = async (req, res) => {
+    try {
+        const cars = await exitTicketValidationDb(req.params.id);
+        res.json(cars);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+const exitTicketValidationDb = async (id) => {
+    const car = await Car.findById(id);
+    car.recoveryDate = new Date();
+    const newCar = await Car.findByIdAndUpdate(id, car, {new: true});
+    return newCar;
+}
+
+const exitRequestList = async (req, res) => {
+    try {
+        const cars = await exitRequestListDb(req.query.mechanic);
+        res.json(cars);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+}
+
+const exitRequestListDb = async (mechanic) => {
+    const cars = await getCarsDb({"mechanic.email": mechanic, recoveryDate: null, exitTicket: true});
+    return cars;
+}
 
 const updateRepairProgress = async (req, res) => {
     try {
@@ -268,4 +299,6 @@ module.exports = {
     addRepairs,
     listReceivedCars,
     updateRepairProgress,
+    exitRequestList,
+    exitTicketValidation,
 };
