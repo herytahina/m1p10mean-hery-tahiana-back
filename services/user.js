@@ -1,6 +1,12 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
+const updateUser = async(req, res) => {
+    const data = { $set: { lastName: req.body.lastName, firstName: req.body.firstName, email: req.body.email, contact: req.body.contact, type: req.body.type }};
+    await User.updateOne({_id: req.query.id}, data);
+    res.status(204).json({state: 'user updated successfully'});
+}
+
 const deleteUser = async(req, res) => {
     await User.deleteOne({_id: req.query.id});
     // console.log(req.query.id);
@@ -27,8 +33,13 @@ const checkLoginDb = async (email, password) => {
 }
 
 const getAdministrator = async (req, res) => {
-    const admin = await User.find({type: 2});
-    res.json(admin);
+    if(req.params.id) {
+        const admin = await User.findOne({_id: req.params.id});
+        res.json(admin);
+    } else {
+        const admin = await User.find({$or: [{type: 2}, {type: 3}]});
+        res.json(admin);
+    }
 }
 
 const createAdministrator = async (req, res) => {
@@ -36,13 +47,13 @@ const createAdministrator = async (req, res) => {
         const oldUser = await User.findOne({ email: req.body.email });
         if(oldUser !== null)
             return res.status(400).json({ message: 'Email already used' });
-        const user = new User({
-            lastName: req.body.lastName,
-            firstName: req.body.firstName,
-            email: req.body.email,
-            contact: req.body.contact,
-            password: await bcrypt.hash(req.body.password, 10),
-            type: 2
+            const user = new User({
+                lastName: req.body.lastName,
+                firstName: req.body.firstName,
+                email: req.body.email,
+                contact: req.body.contact,
+                password: await bcrypt.hash(req.body.password, 10),
+                type: req.body.type
         });
         const newUser = await user.save();
         res.status(201).json(newUser);
@@ -115,4 +126,5 @@ module.exports = {
     createAdministrator,
     getAdministrator,
     deleteUser,
+    updateUser,
 };
