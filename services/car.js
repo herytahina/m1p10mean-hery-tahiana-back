@@ -2,7 +2,41 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
+const addPayment = async (req, res) => {
+    const paymentTemp = {"amount": req.body.amount, "paymentDate": req.body.paymentDate};
 
+    const data = { $set: { payments: paymentTemp }};
+    await Car.updateOne({_id: req.params.car_id}, data);
+    console.log(req.params.car_id);
+    res.status(204).json({state: 'payment added successfully'});
+}
+
+const getCarsForPayment = async (req, res) => {
+    const carList = await Car.find({exitTicket: false});
+    res.json(carList);
+}
+
+// const getCarsForPayment = async (req, res) => {
+//     const carList = [];
+
+//     const userList = await User.find({type: 1});
+//     userList.forEach((user) => {
+//         user.cars.forEach(async (car) => {
+//             const carTemp = await Car.findOne({immatriculation: car.immatriculation});
+//             if(!carTemp.exitTicket) 
+//                 carList.push(carTemp);
+//                 // console.log(carList);
+//         });
+//     });
+//     const data = Promise.all(carList).then((data) => {
+//         return data;
+//     })
+//     data.then(d => {
+//         console.log(data);
+//         res.json(data);
+//     })
+
+// }
 
 const createExitRequest = async (req, res) => {
     const no = req.params.immatriculation;
@@ -97,7 +131,6 @@ const getCarsDb = async (where = undefined) => {
                 });
                 return match.length > 0;
             });
-            console.log('fory');
             if(data.length === 0) return user.cars;
             return res;
         } else {
@@ -138,5 +171,7 @@ module.exports = {
     depositCar,
     getCarRepairs,
     getRepairsHistory,
-    createExitRequest
+    createExitRequest,
+    getCarsForPayment,
+    addPayment,
 };
