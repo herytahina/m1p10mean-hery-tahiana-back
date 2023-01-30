@@ -120,7 +120,41 @@ const isParkedDb = async (immatriculation) => {
         }
     }
 }
+const addPayment = async (req, res) => {
+    const paymentTemp = {"amount": req.body.amount, "paymentDate": req.body.paymentDate};
 
+    const data = { $set: { payments: paymentTemp }};
+    await Car.updateOne({_id: req.params.car_id}, data);
+    console.log(req.params.car_id);
+    res.status(204).json({state: 'payment added successfully'});
+}
+
+const getCarsForPayment = async (req, res) => {
+    const carList = await Car.find({exitTicket: false});
+    res.json(carList);
+}
+
+// const getCarsForPayment = async (req, res) => {
+//     const carList = [];
+
+//     const userList = await User.find({type: 1});
+//     userList.forEach((user) => {
+//         user.cars.forEach(async (car) => {
+//             const carTemp = await Car.findOne({immatriculation: car.immatriculation});
+//             if(!carTemp.exitTicket) 
+//                 carList.push(carTemp);
+//                 // console.log(carList);
+//         });
+//     });
+//     const data = Promise.all(carList).then((data) => {
+//         return data;
+//     })
+//     data.then(d => {
+//         console.log(data);
+//         res.json(data);
+//     })
+
+// }
 
 const createExitRequest = async (req, res) => {
     const no = req.params.immatriculation;
@@ -304,4 +338,6 @@ module.exports = {
     updateRepairProgress,
     exitRequestList,
     exitTicketValidation,
+    getCarsForPayment,
+    addPayment,
 };

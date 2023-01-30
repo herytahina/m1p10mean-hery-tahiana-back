@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const usersRouter = require('./routes/users');
 const carsRouter = require('./routes/cars');
 const statisticsRouter = require('./routes/statistics');
+const expenseRouter = require('./routes/expenses');
 const cors = require('cors');
 
 // database config
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 app.use('/users', usersRouter);
 app.use('/cars', carsRouter);
 app.use('/statistics', statisticsRouter);
+app.use('/expenses', expenseRouter);
 
 // app
 app.listen(
