@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { depositCar, getCars, getCarRepairs, getRepairsHistory, createExitRequest, getNonReceivedCars, addRepairs, listReceivedCars, updateRepairProgress, exitRequestList, exitTicketValidation, getCarsForPayment, addPayment } = require('../services/car');
 const { addClientCar, carReception } = require('../services/user');
-const { addClientCar } = require('../services/user');
 const { route } = require('./users');
 
 router.get('/:immatriculation/repairs/history', getRepairsHistory);
