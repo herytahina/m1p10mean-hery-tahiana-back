@@ -2,6 +2,8 @@ const Car = require('../models/car');
 const User = require('../models/user');
 const { hasCarDb, addClientCarDb } = require('./user');
 
+
+
 const createExitRequest = async (req, res) => {
     const no = req.params.immatriculation;
     await createExitRequestDb(no);

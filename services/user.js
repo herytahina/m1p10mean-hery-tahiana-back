@@ -2,9 +2,9 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
 const deleteUser = async(req, res) => {
-    await User.deleteOne({_id: req.body.id});
-    // console.log(req.body.id);
-    res.status(204).json({state: 'success'});
+    await User.deleteOne({_id: req.query.id});
+    // console.log(req.query.id);
+    res.status(204).json({state: 'user deleted successfully'});
 }
 
 const checkLogin = async (req, res) => {
