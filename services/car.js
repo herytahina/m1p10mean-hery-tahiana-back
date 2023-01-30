@@ -1,12 +1,15 @@
 const { findById } = require('../models/car');
 const Car = require('../models/car');
 const User = require('../models/user');
+const { sendMail } = require('./mail');
 const { hasCarDb, addClientCarDb } = require('./user');
 
 const exitTicketValidation = async (req, res) => {
     try {
-        const cars = await exitTicketValidationDb(req.params.id);
-        res.json(cars);
+        const car = await exitTicketValidationDb(req.params.id);
+        const user = await User.findOne({"cars.immatriculation": car.immatriculation});
+        sendMail(user.email, car, `${user.lastName} ${user.firstName}`);
+        res.json(car);
     } catch (error) {
         res.status(500).json({message: error.message});
     }
