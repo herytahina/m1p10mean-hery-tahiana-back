@@ -5,6 +5,7 @@ const app = express();
 const mongoose = require('mongoose');
 const usersRouter = require('./routes/users');
 const carsRouter = require('./routes/cars');
+const expenseRouter = require('./routes/expenses');
 const cors = require('cors');
 
 // database config
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 
 app.use('/users', usersRouter);
 app.use('/cars', carsRouter);
+app.use('/expenses', expenseRouter);
 
 // app
 app.listen(
