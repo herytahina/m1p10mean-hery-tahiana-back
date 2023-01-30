@@ -39,6 +39,67 @@ const carReceptionDb = async (email, immatriculation) => {
         throw new Error("Cet utilisateur n'existe pas");
 }
 
+const updateUser = async(req, res) => {
+    const data = { $set: { lastName: req.body.lastName, firstName: req.body.firstName, email: req.body.email, contact: req.body.contact, type: req.body.type }};
+    await User.updateOne({_id: req.query.id}, data);
+    res.status(204).json({state: 'user updated successfully'});
+}
+
+const deleteUser = async(req, res) => {
+    await User.deleteOne({_id: req.query.id});
+    // console.log(req.query.id);
+    res.status(204).json({state: 'user deleted successfully'});
+}
+
+const checkLogin = async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const isCorrect = await checkLoginDb(email, password);
+    if(!isCorrect)
+        return res.status(400).json({message: "Email ou mot de passe incorrect."})
+    res.json(isCorrect);
+}
+
+const checkLoginDb = async (email, password) => {
+    const user = await User.findOne({email: email});
+    if(user) {
+        const res = await bcrypt.compare(password, user.password);
+        if(res)
+            return user;
+    }
+    return false;
+}
+
+const getAdministrator = async (req, res) => {
+    if(req.params.id) {
+        const admin = await User.findOne({_id: req.params.id});
+        res.json(admin);
+    } else {
+        const admin = await User.find({$or: [{type: 2}, {type: 3}]});
+        res.json(admin);
+    }
+}
+
+const createAdministrator = async (req, res) => {
+    try {
+        const oldUser = await User.findOne({ email: req.body.email });
+        if(oldUser !== null)
+            return res.status(400).json({ message: 'Email already used' });
+            const user = new User({
+                lastName: req.body.lastName,
+                firstName: req.body.firstName,
+                email: req.body.email,
+                contact: req.body.contact,
+                password: await bcrypt.hash(req.body.password, 10),
+                type: req.body.type
+        });
+        const newUser = await user.save();
+        res.status(201).json(newUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 const createClient = async (req, res) => {
     try {
         const oldUser = await User.findOne({ email: req.body.email });
@@ -100,4 +161,9 @@ module.exports = {
     addClientCarDb,
     hasCarDb,
     carReception,
+    checkLogin,
+    createAdministrator,
+    getAdministrator,
+    deleteUser,
+    updateUser,
 };

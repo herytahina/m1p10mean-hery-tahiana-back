@@ -87,6 +87,7 @@ const isParkedDb = async (immatriculation) => {
     }
 }
 
+
 const createExitRequest = async (req, res) => {
     const no = req.params.immatriculation;
     await createExitRequestDb(no);
