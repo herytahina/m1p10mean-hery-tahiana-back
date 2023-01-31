@@ -18,7 +18,7 @@ const carReceptionDb = async (email, immatriculation) => {
     const mechanic = await User.findOne({email});
     if(mechanic) {
         if(mechanic.type === 2) {
-            const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().replaceAll(' ', '')});
+            const car = await Car.findOne({immatriculation: immatriculation.toUpperCase().replaceAll(' ', ''), exitTicket: false, recoveryDate: null});
             if(car) {
                 if(car.mechanic)
                     throw new Error("Cette voiture est déjà assignée");
